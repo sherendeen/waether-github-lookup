@@ -20,20 +20,22 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class GithubFetcher {
 
-    fun fetchContents(user: String): Repo? {
+    fun fetchContents(user: String): MutableLiveData<Repo> {
         val responseLiveData: MutableLiveData<Repo> = MutableLiveData()
 
-        var theRepo: Repo = Repo()
-
+//        var theRepo: Repo = Repo()
+//
         val dataCall: Call<Repo> = githubApi.getInfo(user)
 
         dataCall.enqueue(object : Callback<Repo> {
             override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
 
-                if (response.code() != 200) {
-                    Log.d(TAG, "Please check connection!!!")
+                if (response.code()!= 200) {
+                    Log.d(TAG, "Please check connection!!! code was: ${response.code()}")
                     return
                 }
+
+
 
                 Log.d(
                     TAG, "Here's the data: ${response.body()?.login} " +
@@ -56,14 +58,20 @@ class GithubFetcher {
                 //    val created_at : String = "",
                 //    val name : String = ""
 
-                theRepo.bio = response.body()?.bio
-                theRepo.login = response.body()?.login
-                theRepo.url = response.body()?.url
+                responseLiveData.value?.bio = response.body()?.bio!!
+                responseLiveData.value?.login = response.body()?.login!!
+                responseLiveData.value?.url = response.body()?.url!!
 
-                theRepo.followers = response.body()?.followers
-                theRepo.created_at = response.body()?.created_at
-                theRepo.name = response.body()?.name
-
+                responseLiveData.value?.followers = response.body()!!.followers
+                responseLiveData.value?.created_at = response.body()!!.created_at
+                responseLiveData.value?.name = response.body()!!.name
+                Log.e(
+                    TAG, "Here's the data: ${response.body()?.login} " +
+                            "${response.body()?.name} " +
+                            "${response.body()?.followers} " +
+                            "${response.body()?.bio} " +
+                            "${response.body()?.url} "
+                )
 
                 Log.d(TAG, "EXITING ONRESPONSE()")
             }
@@ -74,7 +82,7 @@ class GithubFetcher {
 
         })
 
-        return theRepo
+        return responseLiveData
     }
 
     private val githubApi: GithubService
